@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>四型動物行為風格測驗</title>
+<style>
+:root{--ink:#30343b;--muted:#68717d;--paper:#fbfaf7;--line:#e5e2dc;--accent:#647a72;--soft:#edf1ed}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;line-height:1.65}
+main{max-width:780px;margin:0 auto;padding:24px 16px 48px}
+.hero{padding:28px 22px;border-radius:22px;background:linear-gradient(135deg,#edf1ed,#f5eee5);margin-bottom:18px}
+.kicker{font-size:.85rem;letter-spacing:.08em;color:var(--muted)}
+h1{font-size:clamp(1.6rem,5vw,2.3rem);line-height:1.25;margin:.35rem 0 .7rem}
+h2{font-size:1.2rem;margin:0 0 12px}
+p{margin:.45rem 0}
+.note{font-size:.9rem;color:var(--muted)}
+.progress-wrap{height:8px;background:#e7e4de;border-radius:99px;overflow:hidden;margin:14px 0 6px}
+#progress{height:100%;width:0;background:var(--accent);transition:width .2s}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;margin:14px 0}
+.qnum{font-size:.85rem;color:var(--muted);margin-bottom:5px}
+.option{display:flex;gap:11px;align-items:flex-start;padding:12px 13px;border:1px solid var(--line);border-radius:12px;margin:9px 0;cursor:pointer;transition:background .15s,border-color .15s}
+.option:has(input:checked){background:var(--soft);border-color:var(--accent)}
+.option input{margin-top:5px;accent-color:var(--accent);flex-shrink:0}
+.actions{display:flex;gap:10px;margin-top:18px}
+button{font:inherit;border:0;border-radius:12px;padding:12px 18px;cursor:pointer}
+.primary{background:var(--accent);color:#fff;flex:1}
+.secondary{background:#eeece7;color:var(--ink)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.hidden{display:none!important}
+.result-animal{font-size:3rem}
+.score-row{margin:14px 0}
+.score-head{display:flex;justify-content:space-between;gap:12px}
+.bar{height:9px;background:#eeece7;border-radius:99px;overflow:hidden;margin-top:5px}
+.bar>div{height:100%;background:var(--accent);border-radius:99px}
+.tag{display:inline-block;background:var(--soft);padding:4px 10px;border-radius:99px;font-size:.85rem;margin:4px 4px 0 0}
+footer{margin-top:22px;color:var(--muted);font-size:.86rem}
+@media(min-width:640px){.hero{padding:34px}.card{padding:24px}}
+</style>
+</head>
+<body>
+<main>
+<section class="hero">
+<div class="kicker">SELF-DISCOVERY · 趣味探索</div>
+<h1>🐨🦚🐯🦉 四型動物行為風格測驗</h1>
+<p>從日常情境認識自己的行為傾向，也看看不同的人如何合作。</p>
+<p class="note">共 12 題｜約 3 分鐘｜沒有標準答案</p>
+</section>
+<section class="card" id="intro">
+<h2>開始前，請先記得</h2>
+<p>請選擇你在大多數情況下「最自然的反應」，而不是你認為最理想的答案。每題選一項，完成後就能看到四種風格的分布。</p>
+<p class="note">這是趣味自我探索活動，不是正式心理測驗或診斷。每個人都可能依情境展現不同風格，沒有哪一型比較好。</p>
+<button class="primary" id="startBtn">開始測驗</button>
+</section>
+<section id="quiz" class="hidden">
+<div class="progress-wrap"><div id="progress"></div></div>
+<p class="note" id="progressText">已完成 0 / 12 題</p>
+<div id="questionArea"></div>
+<div class="actions">
+<button class="secondary" id="prevBtn">上一題</button>
+<button class="primary" id="nextBtn">下一題</button>
+</div>
+</section>
+<section id="result" class="hidden"></section>
+<footer>給自己的提醒：行為風格是一種理解自己的角度，不是替自己或他人貼標籤。尊重差異，才能一起合作。</footer>
+</main>
+<script>
+const questions=[
+{q:"當你加入一個新的團隊時，你通常會……",a:[["先觀察大家的互動，讓彼此慢慢熟悉","K"],["主動聊天、帶動氣氛，認識新朋友","P"],["確認目標與分工，希望大家趕快開始","T"],["先了解規則、任務內容與執行方式","O"]]},
+{q:"當團隊遇到意見不合時，你比較可能……",a:[["先聽每個人的想法，尋找大家都能接受的方式","K"],["用熱情的方式表達自己的看法，帶動討論","P"],["快速分析利弊，提出決定性的方向","T"],["釐清爭議的原因，依據事實與標準討論","O"]]},
+{q:"接到一項全新的任務時，你最在意……",a:[["大家能不能合作愉快、互相支持","K"],["這件事有沒有趣，能不能發揮創意","P"],["目標是否明確，能不能有效完成","T"],["資訊是否完整，流程是否清楚","O"]]},
+{q:"如果朋友心情不好來找你，你通常會……",a:[["耐心聽他說，陪伴他整理情緒","K"],["用聊天、分享經驗或幽默讓他心情好一些","P"],["幫他分析問題，想出可以採取的行動","T"],["仔細了解事情的經過，再提供有根據的建議","O"]]},
+{q:"面對時間緊迫、必須趕快完成的工作，你會……",a:[["先確認大家的狀況，協調分工與進度","K"],["鼓舞大家的士氣，讓氣氛保持正向","P"],["立刻抓出優先順序，全力推進成果","T"],["檢查關鍵細節，避免趕工造成錯誤","O"]]},
+{q:"在團體中，你最不喜歡哪一種情況？",a:[["人與人之間充滿衝突，氣氛很緊張","K"],["氣氛沉悶，沒有人交流或回應","P"],["大家一直討論，卻遲遲沒有進展","T"],["事情沒有規劃，標準反覆變動","O"]]},
+{q:"當你要做一個重要決定時，你通常會……",a:[["考慮這個決定對重要他人的影響","K"],["想像不同選擇帶來的體驗與機會","P"],["比較哪個選項最能達成目標","T"],["蒐集資訊、評估風險，再謹慎決定","O"]]},
+{q:"別人最可能因為什麼優點來稱讚你？",a:[["親切、可靠、善於傾聽","K"],["活潑、有感染力、很會表達","P"],["有魄力、有效率、說到做到","T"],["細心、有條理、思考周全","O"]]},
+{q:"當你的想法沒有被大家採納時，你比較可能……",a:[["尊重大家的決定，希望維持合作關係","K"],["再用更有感染力的方式說明自己的想法","P"],["直接提出理由，爭取自己認為最有效的方案","T"],["補充證據與細節，讓大家重新評估","O"]]},
+{q:"規劃一趟旅行時，你最自然的做法是……",a:[["先詢問同行者的喜好，希望大家都玩得開心","K"],["找有趣、特別的體驗，保留即興發揮的空間","P"],["先決定必去的景點，安排好時間與效率","T"],["仔細查交通、營業時間、預算與備案","O"]]},
+{q:"當你學習一項新技能時，你比較喜歡……",a:[["找人一起練習，互相鼓勵與陪伴","K"],["邊玩邊試，透過有趣的體驗快速上手","P"],["設定明確目標，挑戰自己快速進步","T"],["先理解原理與步驟，再循序漸進練習","O"]]},
+{q:"如果你有一個很棒的成果，你最希望……",a:[["身邊的人也能受益，大家一起感到滿足","K"],["能與別人分享，獲得熱烈的交流與回饋","P"],["成果被看見，證明自己確實達成目標","T"],["成果經得起檢驗，品質與細節都令人放心","O"]]}
+];
+const info={
+K:{name:"無尾熊型",emoji:"🐨",desc:"你可能比較重視關係、和諧與團隊合作，也常願意傾聽、支持他人。",strength:"善於傾聽、合作、營造安心感",try:"練習適時說出自己的需求，不必為了維持和諧而總是退讓。"},
+P:{name:"孔雀型",emoji:"🦚",desc:"你可能比較喜歡交流、表達與創意，也能為團隊帶來熱情和活力。",strength:"表達力、感染力、創意與連結",try:"練習在分享想法之外，也留時間聆聽與整理細節。"},
+T:{name:"老虎型",emoji:"🐯",desc:"你可能比較重視目標、效率與行動，遇到問題時傾向推動事情往前走。",strength:"果斷、執行力、聚焦成果",try:"做決定前稍微停一下，確認他人的感受與不同觀點。"},
+O:{name:"貓頭鷹型",emoji:"🦉",desc:"你可能比較重視邏輯、規則與細節，習慣先理解資訊再謹慎行動。",strength:"分析力、細心、規劃與品質意識",try:"遇到資訊不完整時，可先採取小步驟嘗試，不必等到所有條件都完美。"}
+};
+let answers=Array(questions.length).fill(null), index=0;
+const $=id=>document.getElementById(id);
+function renderQuestion(){
+ const q=questions[index];
+ $("questionArea").innerHTML=`<article class="card"><div class="qnum">第 ${index+1} 題／共 ${questions.length} 題</div><h2>${q.q}</h2>${q.a.map((o,i)=>`<label class="option"><input type="radio" name="answer" value="${i}" ${answers[index]===i?"checked":""}><span>${o[0]}</span></label>`).join("")}</article>`;
+ $("progress").style.width=(answers.filter(x=>x!==null).length/questions.length*100)+"%";
+ $("progressText").textContent=`已完成 ${answers.filter(x=>x!==null).length} / ${questions.length} 題`;
+ $("prevBtn").disabled=index===0;
+ $("nextBtn").textContent=index===questions.length-1?"查看結果":"下一題";
+}
+function saveAnswer(){const checked=document.querySelector('input[name="answer"]:checked');if(checked)answers[index]=Number(checked.value);}
+$("startBtn").onclick=()=>{$("intro").classList.add("hidden");$("quiz").classList.remove("hidden");renderQuestion();};
+$("prevBtn").onclick=()=>{saveAnswer();if(index>0){index--;renderQuestion();}};
+$("nextBtn").onclick=()=>{saveAnswer();if(answers[index]===null){alert("請先選擇一個最符合你的答案。");return;}if(index<questions.length-1){index++;renderQuestion();}else showResult();};
+function showResult(){
+ const scores={K:0,P:0,T:0,O:0};
+ questions.forEach((q,i)=>scores[q.a[answers[i]][1]]++);
+ const max=Math.max(...Object.values(scores));
+ const winners=Object.keys(scores).filter(k=>scores[k]===max);
+ let html=`<div class="card"><div class="kicker">你的測驗結果</div><h1>你的行為風格分布</h1><p class="note">分數反映你在這份趣味測驗中的相對傾向，不是固定的人格定義。</p>`;
+ for(const k of ["K","P","T","O"]){html+=`<div class="score-row"><div class="score-head"><strong>${info[k].emoji} ${info[k].name}</strong><span>${scores[k]} / 12</span></div><div class="bar"><div style="width:${scores[k]/12*100}%"></div></div></div>`;}
+ html+=`</div>`;
+ for(const k of winners){html+=`<div class="card"><div class="result-animal">${info[k].emoji}</div><h2>你的主要傾向：${info[k].name}</h2><p>${info[k].desc}</p><p><strong>你可能帶來的優勢：</strong>${info[k].strength}</p><p><strong>可以練習的方向：</strong>${info[k].try}</p></div>`;}
+ html+=`<div class="card"><h2>帶著結果想一想</h2><p>① 哪一個描述最像你？為什麼？</p><p>② 你和不同風格的人合作時，可以如何互相幫忙？</p><p>③ 風格不是標籤；遇到不同情境，你也可以發展新的做法。</p><p class="note">本測驗僅供趣味自我探索，不是經過科學驗證的心理量表，也不能用於心理診斷。分數相同時，代表你可能在不同情境展現多種傾向。</p><div class="actions"><button class="secondary" id="redoBtn">重新作答</button><button class="primary" id="printBtn">列印／存成 PDF</button></div></div>`;
+ $("quiz").classList.add("hidden");$("result").innerHTML=html;$("result").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"});
+ $("redoBtn").onclick=()=>{answers=Array(questions.length).fill(null);index=0;$("result").classList.add("hidden");$("quiz").classList.remove("hidden");renderQuestion();window.scrollTo({top:0,behavior:"smooth"});};
+ $("printBtn").onclick=()=>window.print();
+}
+</script>
+</body>
+</html>
